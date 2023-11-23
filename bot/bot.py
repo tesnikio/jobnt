@@ -2,8 +2,15 @@
 import logging
 import config
 
-from telegram import Update, ReplyKeyboardMarkup
+from telegram import (
+    Update,
+    ReplyKeyboardMarkup,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+)
+
 from telegram.constants import ParseMode, ChatAction
+
 from telegram.ext import (
     filters,
     ApplicationBuilder,
@@ -11,15 +18,16 @@ from telegram.ext import (
     ContextTypes,
     CommandHandler,
     MessageHandler,
+    CallbackQueryHandler,
 )
 
 
 logger = logging.getLogger(__name__)
 
 
-async def start_handler(update: Update, context: CallbackContext):
+async def start_handle(update: Update, context: CallbackContext):
     welcome_text = """
-                    Hello! I'm <b>jobnt</b> bot created to help you get your dream job referral or to bless someone with the one 🔗\n\n<i>Please choose one of the options from a menu⬇️</i>
+                    Hello! I'm <b>jobnt</b> bot created to help you get your dream job referral or to bless someone with the one 🔗\n\n<i>Please choose one of the options from a menu ⬇️</i>
                    """
 
     reply_keyboard = [["refer me", "i can refer"]]
@@ -29,22 +37,55 @@ async def start_handler(update: Update, context: CallbackContext):
     )
 
 
-async def handle_choice(update: Update, context: CallbackContext):
+async def initial_choice_handle(update: Update, context: CallbackContext):
     user_choice = update.message.text
     if user_choice == "refer me":
-        await handle_refer_me(update, context)
+        await refer_me_handle(update, context)
     elif user_choice == "i can refer":
-        await handle_i_can_refer(update, context)
+        await i_can_refer_handle(update, context)
     else:
         await update.message.reply_text("Sorry, I didn't understand that choice.")
 
 
-async def handle_refer_me(update: Update, context: CallbackContext):
-    # Add your logic for "refer me" option here
-    await update.message.reply_text("You selected 'refer me'. Let's proceed with that.")
+async def refer_me_handle(update: Update, context: CallbackContext):
+    # TODO: load list of companies into keyboard buttons from a db
+    keyboard = [
+        [InlineKeyboardButton("Apple", callback_data="apple")],
+        [InlineKeyboardButton("Google", callback_data="google")],
+        [InlineKeyboardButton("OpenAI", callback_data="openai")],
+    ]
+
+    reply_markup = InlineKeyboardMarkup(keyboard)
+
+    await update.message.reply_text(
+        "Please choose company you wanna work for:", reply_markup=reply_markup
+    )
 
 
-async def handle_i_can_refer(update: Update, context: CallbackContext):
+async def refer_me_button_handle(update: Update, context: CallbackContext):
+    query = update.callback_query
+    await query.answer()
+
+    # Extract the callback data
+    data = query.data
+
+    # Process based on callback data
+    if data == "apple":
+        # Replace this with real data or a function call to get data
+        employee_list = "Tim Cook, Steve Jobs, etc."
+        await query.edit_message_text(f"People working at Apple: {employee_list}")
+    elif data == "google":
+        # Similar handling for Google
+        pass
+    elif data == "openai":
+        # Similar handling for OpenAI
+        pass
+    else:
+        await query.edit_message_text("Unknown option selected")
+
+
+# TODO: implement this later
+async def i_can_refer_handle(update: Update, context: CallbackContext):
     # Add your logic for "i can refer" option here
     await update.message.reply_text(
         "You selected 'i can refer'. Let's proceed with that."
@@ -54,9 +95,10 @@ async def handle_i_can_refer(update: Update, context: CallbackContext):
 if __name__ == "__main__":
     application = ApplicationBuilder().token(config.telegram_token).build()
 
-    application.add_handler(CommandHandler("start", start_handler))
+    application.add_handler(CommandHandler("start", start_handle))
     application.add_handler(
-        MessageHandler(filters.TEXT & ~filters.COMMAND, handle_choice)
+        MessageHandler(filters.TEXT & ~filters.COMMAND, initial_choice_handle)
     )
+    application.add_handler(CallbackQueryHandler(refer_me_button_handle))
 
     application.run_polling()
