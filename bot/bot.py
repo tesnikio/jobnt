@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import logging
 import config
+import database
 
 from telegram import (
     Update,
@@ -23,6 +24,7 @@ from telegram.ext import (
 
 
 logger = logging.getLogger(__name__)
+db = database.Database()
 
 
 async def start_handle(update: Update, context: CallbackContext):
@@ -43,6 +45,19 @@ async def initial_choice_handle(update: Update, context: CallbackContext):
         await refer_me_handle(update, context)
     elif user_choice == "i can refer":
         await i_can_refer_handle(update, context)
+    elif context.user_data.get("awaiting_company_name"):
+        company_name = update.message.text
+
+        user_id = update.effective_user.id
+        username = update.effective_user.username
+        first_name = update.effective_user.first_name
+        last_name = update.effective_user.last_name
+
+        db.add_new_user(user_id, username, first_name, last_name, company_name)
+
+        await update.message.reply_text("Thank you! Your information has been saved.")
+
+        del context.user_data["awaiting_company_name"]
     else:
         await update.message.reply_text("Sorry, I didn't understand that choice.")
 
@@ -84,12 +99,12 @@ async def refer_me_button_handle(update: Update, context: CallbackContext):
         await query.edit_message_text("Unknown option selected")
 
 
-# TODO: implement this later
 async def i_can_refer_handle(update: Update, context: CallbackContext):
     # Add your logic for "i can refer" option here
     await update.message.reply_text(
-        "You selected 'i can refer'. Let's proceed with that."
+        "Please enter the name of the company you work for:"
     )
+    context.user_data["awaiting_company_name"] = True
 
 
 if __name__ == "__main__":
