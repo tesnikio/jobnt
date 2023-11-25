@@ -39,7 +39,7 @@ async def start_handle(update: Update, context: CallbackContext):
     )
 
 
-async def initial_choice_handle(update: Update, context: CallbackContext):
+async def message_handle(update: Update, context: CallbackContext):
     user_choice = update.message.text
     if user_choice == "refer me":
         await refer_me_handle(update, context)
@@ -55,20 +55,27 @@ async def initial_choice_handle(update: Update, context: CallbackContext):
 
         db.add_new_user(user_id, username, first_name, last_name, company_name)
 
-        await update.message.reply_text("Thank you! Your information has been saved.")
+        await update.message.reply_text(
+            "Thank you! Your information has been saved and will be shown in a list of referrers."
+        )
 
         del context.user_data["awaiting_company_name"]
     else:
-        await update.message.reply_text("Sorry, I didn't understand that choice.")
+        await update.message.reply_text(
+            "Sorry, I was unable to recognize the option you've chosen."
+        )
 
 
 async def refer_me_handle(update: Update, context: CallbackContext):
-    # TODO: load list of companies into keyboard buttons from a db
-    keyboard = [
-        [InlineKeyboardButton("Apple", callback_data="apple")],
-        [InlineKeyboardButton("Google", callback_data="google")],
-        [InlineKeyboardButton("OpenAI", callback_data="openai")],
-    ]
+    users = db.get_all_users()
+
+    keyboard = []
+
+    for user in users:
+        user_company_name = user["company_name"]
+        keyboard.append(
+            [InlineKeyboardButton(user_company_name, callback_data=user_company_name)]
+        )
 
     reply_markup = InlineKeyboardMarkup(keyboard)
 
@@ -81,28 +88,25 @@ async def refer_me_button_handle(update: Update, context: CallbackContext):
     query = update.callback_query
     await query.answer()
 
-    # Extract the callback data
-    data = query.data
+    selected_company_name = query.data
 
-    # Process based on callback data
-    if data == "apple":
-        # Replace this with real data or a function call to get data
-        employee_list = "Tim Cook, Steve Jobs, etc."
-        await query.edit_message_text(f"People working at Apple: {employee_list}")
-    elif data == "google":
-        # Similar handling for Google
-        pass
-    elif data == "openai":
-        # Similar handling for OpenAI
-        pass
+    employee_list = db.get_all_users()
+
+    selected_company_employees = [
+        user for user in employee_list if user["company_name"] == selected_company_name
+    ]
+
+    if selected_company_name:
+        await query.edit_message_text(
+            f"People working at {selected_company_name}: {selected_company_employees}"
+        )
     else:
         await query.edit_message_text("Unknown option selected")
 
 
 async def i_can_refer_handle(update: Update, context: CallbackContext):
-    # Add your logic for "i can refer" option here
     await update.message.reply_text(
-        "Please enter the name of the company you work for:"
+        "Please enter the name of the company you can refer to:"
     )
     context.user_data["awaiting_company_name"] = True
 
@@ -112,7 +116,7 @@ if __name__ == "__main__":
 
     application.add_handler(CommandHandler("start", start_handle))
     application.add_handler(
-        MessageHandler(filters.TEXT & ~filters.COMMAND, initial_choice_handle)
+        MessageHandler(filters.TEXT & ~filters.COMMAND, message_handle)
     )
     application.add_handler(CallbackQueryHandler(refer_me_button_handle))
 

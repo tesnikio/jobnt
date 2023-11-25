@@ -29,15 +29,22 @@ class Database:
         last_name: str = "",
         company_name: str = "",
     ):
-        user_dict = {
-            "_id": user_id,
-            "username": username,
-            "first_name": first_name,
-            "last_name": last_name,
-            "last_interaction": datetime.now(),
-            "first_seen": datetime.now(),
-            "company_name": company_name,
+        update_dict = {
+            "$set": {
+                "username": username,
+                "first_name": first_name,
+                "last_name": last_name,
+                "last_interaction": datetime.now(),
+                "company_name": company_name,
+            },
+            "$setOnInsert": {"first_seen": datetime.now()},
         }
 
-        if not self.check_if_user_exists(user_id):
-            self.users_collection.insert_one(user_dict)
+        self.users_collection.update_one({"_id": user_id}, update_dict, upsert=True)
+
+    def get_all_users(self):
+        users_cursor = self.users_collection.find({})
+
+        users_list = list(users_cursor)
+
+        return users_list
