@@ -28,6 +28,7 @@ class Database:
         first_name: str = "",
         last_name: str = "",
         company_name: str = "",
+        position_title: str = "",
     ):
         update_dict = {
             "$set": {
@@ -36,6 +37,7 @@ class Database:
                 "last_name": last_name,
                 "last_interaction": datetime.now(),
                 "company_name": company_name,
+                "position_title": position_title,
             },
             "$setOnInsert": {"first_seen": datetime.now()},
         }
