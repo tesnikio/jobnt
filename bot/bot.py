@@ -34,7 +34,7 @@ async def start_handle(update: Update, context: CallbackContext):
                    """
 
     reply_keyboard = [["refer me", "i can refer"]]
-    markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=True)
+    markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=False)
     await update.message.reply_text(
         welcome_text, parse_mode=ParseMode.HTML, reply_markup=markup
     )
@@ -86,7 +86,9 @@ async def message_handle(update: Update, context: CallbackContext):
             "Great, your email has been added to your profile ✅"
         )
     else:
-        await update.message.reply_text("Sorry, incorrect message format 🚫")
+        await update.message.reply_text(
+            "Sorry, incorrect message format or wrong message 🚫"
+        )
 
 
 async def refer_me_handle(update: Update, context: CallbackContext):
@@ -141,8 +143,15 @@ async def refer_me_button_handle(update: Update, context: CallbackContext):
             first_name = employee["first_name"]
             last_name = employee["last_name"]
             position_title = employee["position_title"]
-            contact = employee["username"]
-            message += f"{first_name} {last_name}, {position_title}, {contact}\n"
+            telegram_handle = employee["username"]
+            email = employee["email"]
+
+            if email:
+                message += (
+                    f"{first_name} {last_name}, {position_title}, Email: {email}\n\n"
+                )
+            else:
+                message += f"{first_name} {last_name}, {position_title}, Telegram: @{telegram_handle}\n\n"
 
         if selected_company_name:
             await query.edit_message_text(message, parse_mode=ParseMode.HTML)
@@ -151,7 +160,6 @@ async def refer_me_button_handle(update: Update, context: CallbackContext):
 
 
 async def i_can_refer_handle(update: Update, context: CallbackContext):
-    # message = f"Please enter <i>the name of the company</i> you can refer to and <i>your position</i> title at this company in the following format:\n\n<b>Company, Position</b>\n"
     message = "✍️ Please enter ***the name of the company*** you can refer to and ***your position title*** at this company in the following format:\n\n```Format Company, Position```\n"
     await update.message.reply_text(
         message,
