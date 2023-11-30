@@ -10,16 +10,17 @@ def is_email(email):
         return False
 
 
-def standardize_and_normalize(names):
-    unique_names = set()
+def remove_duplicate_companies(companies):
+    normalized = []
 
-    # Standardize by capitalizing and normalize by removing duplicates
-    for name in names:
-        standardized_name = name.capitalize()
-        unique_names.add(standardized_name)
+    for company in companies:
+        # Capitalize first letter of each word
+        normalized_name = " ".join([x.capitalize() for x in company.split(" ")])
 
-    # Return the list of unique, standardized names
-    return list(unique_names)
+        if normalized_name not in normalized:
+            normalized.append(normalized_name)
+
+    return normalized
 
 
 def validate_format(input_string: str):
