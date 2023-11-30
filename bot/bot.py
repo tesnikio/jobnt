@@ -2,7 +2,7 @@
 import logging
 import config
 import database
-from utils import validate_format, is_email
+from utils import validate_format, is_email, standardize_and_normalize
 
 from telegram import (
     Update,
@@ -97,11 +97,15 @@ async def refer_me_handle(update: Update, context: CallbackContext):
     users = db.get_all_users()
 
     keyboard = []
+    set_of_companies = set()
 
     for user in users:
         user_company_name = user["company_name"]
+        set_of_companies.add(user_company_name.capitalize())
+
+    for company_name in set_of_companies:
         keyboard.append(
-            [InlineKeyboardButton(user_company_name, callback_data=user_company_name)]
+            [InlineKeyboardButton(company_name, callback_data=company_name)]
         )
 
     reply_markup = InlineKeyboardMarkup(keyboard)
