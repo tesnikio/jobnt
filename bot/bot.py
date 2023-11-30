@@ -54,6 +54,10 @@ async def message_handle(update: Update, context: CallbackContext):
     elif context.user_data.get("awaiting_company_name") and is_valid:
         company_name, position_title = incoming_message.split(", ")
 
+        standardized_company_name = " ".join(
+            word.capitalize() for word in company_name.split()
+        )
+
         user_id = update.effective_user.id
         username = update.effective_user.username
         first_name = update.effective_user.first_name
@@ -64,7 +68,7 @@ async def message_handle(update: Update, context: CallbackContext):
             username=username,
             first_name=first_name,
             last_name=last_name,
-            company_name=company_name,
+            company_name=standardized_company_name,
             position_title=position_title,
         )
 
