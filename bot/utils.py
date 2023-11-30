@@ -10,6 +10,18 @@ def is_email(email):
         return False
 
 
+def standardize_and_normalize(names):
+    unique_names = set()
+
+    # Standardize by capitalizing and normalize by removing duplicates
+    for name in names:
+        standardized_name = name.capitalize()
+        unique_names.add(standardized_name)
+
+    # Return the list of unique, standardized names
+    return list(unique_names)
+
+
 def validate_format(input_string: str):
     commands = set(["refer me", "i can refer"])
     if input_string in commands:
