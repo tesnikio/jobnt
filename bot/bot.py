@@ -2,7 +2,7 @@
 import logging
 import config
 import database
-from utils import validate_format, is_email, standardize_and_normalize
+from utils import validate_format, is_email
 
 from telegram import (
     Update,
@@ -101,7 +101,10 @@ async def refer_me_handle(update: Update, context: CallbackContext):
 
     for user in users:
         user_company_name = user["company_name"]
-        set_of_companies.add(user_company_name.capitalize())
+        standardized_name = " ".join(
+            word.capitalize() for word in user_company_name.split()
+        )
+        set_of_companies.add(standardized_name)
 
     for company_name in set_of_companies:
         keyboard.append(
