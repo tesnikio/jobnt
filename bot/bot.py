@@ -30,10 +30,10 @@ db = database.Database()
 
 async def start_handle(update: Update, context: CallbackContext):
     welcome_text = """
-                    Hello! I'm <b>jobnt</b> bot created to help you get your dream job referral or to bless someone with the one 🔗\n\n<i>Please choose one of the options from a menu ⬇️</i>
+                    Hello! I'm <b>jobnt</b> 🤖 created to help you get your dream job referral or to bless someone with the one 🔗\n\n🔻 Click <b>refer me</b> to see list of companies and people that are ready to refer you.\n\n🔻 Click <b>i can refer</b> if you're can give a referral to the company you work for. You will be asked to provide your contact information, such as an email address or Telegram handle, so that individuals interested in referral opportunities can reach out to you.\n\n🔻 Click <b>remove my profile</b> if you don't want to be in the list of referres.\n\nDon't be jobn't 😎\n\n<i>Please choose one of the options from a menu ⬇️</i>
                    """
 
-    reply_keyboard = [["refer me", "i can refer"]]
+    reply_keyboard = [["🙏 refer me", "🙋 i can refer", "🗑️ remove my profile"]]
     markup = ReplyKeyboardMarkup(reply_keyboard, one_time_keyboard=False)
     await update.message.reply_text(
         welcome_text, parse_mode=ParseMode.HTML, reply_markup=markup
@@ -45,10 +45,12 @@ async def message_handle(update: Update, context: CallbackContext):
 
     is_valid, err = validate_format(incoming_message)
 
-    if incoming_message == "refer me":
+    if "refer me" in incoming_message:
         await refer_me_handle(update, context)
-    elif incoming_message == "i can refer":
+    elif "i can refer" in incoming_message:
         await i_can_refer_handle(update, context)
+    elif "remove my profile" in incoming_message:
+        await remove_profile_handle(update, context)
     elif context.user_data.get("awaiting_company_name") and is_valid:
         company_name, position_title = incoming_message.split(", ")
 
@@ -71,8 +73,8 @@ async def message_handle(update: Update, context: CallbackContext):
         )
 
         contact_keyboard = [
-            [InlineKeyboardButton("Telegram", callback_data="contact_telegram")],
-            [InlineKeyboardButton("Email", callback_data="contact_email")],
+            [InlineKeyboardButton("📲 Telegram", callback_data="contact_telegram")],
+            [InlineKeyboardButton("📧 Email", callback_data="contact_email")],
         ]
         reply_markup = InlineKeyboardMarkup(contact_keyboard)
         await update.message.reply_text(
@@ -147,11 +149,9 @@ async def refer_me_button_handle(update: Update, context: CallbackContext):
             email = employee["email"]
 
             if email:
-                message += (
-                    f"{first_name} {last_name}, {position_title}, Email: {email}\n\n"
-                )
+                message += f"🔘 <b>{first_name} {last_name}</b>, <i>{position_title}</i>, <b>Email</b>: {email}\n\n"
             else:
-                message += f"{first_name} {last_name}, {position_title}, Telegram: @{telegram_handle}\n\n"
+                message += f"🔘 <b>{first_name} {last_name}</b>, <i>{position_title}</i>, <b>Telegram</b>: @{telegram_handle}\n\n"
 
         if selected_company_name:
             await query.edit_message_text(message, parse_mode=ParseMode.HTML)
@@ -166,6 +166,17 @@ async def i_can_refer_handle(update: Update, context: CallbackContext):
         parse_mode=ParseMode.MARKDOWN,
     )
     context.user_data["awaiting_company_name"] = True
+
+
+async def remove_profile_handle(update: Update, context: CallbackContext):
+    user_id = update.effective_user.id
+    if db.check_if_user_exists(user_id):
+        db.remove_user_by_id(user_id)
+        message = "Your information has been removed from the list of referrers 👋"
+    else:
+        message = "There's no information about you, nothing to remove."
+
+    await update.message.reply_text(message, parse_mode=ParseMode.HTML)
 
 
 if __name__ == "__main__":
