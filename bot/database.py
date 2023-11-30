@@ -60,3 +60,7 @@ class Database:
         users_list = list(users_cursor)
 
         return users_list
+
+    def remove_user_by_id(self, user_id: int):
+        if self.check_if_user_exists(user_id):
+            self.users_collection.delete_one({"_id": user_id})
