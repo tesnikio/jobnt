@@ -1,6 +1,6 @@
 # Job Referral Telegram Bot
 
-This Python project is a Telegram bot designed to streamline the process of finding and giving job referrals. 
+This Python project is a Telegram bot designed to streamline finding and giving job referrals. 
 
 The bot allows users to:
 
