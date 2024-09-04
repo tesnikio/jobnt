@@ -11,7 +11,7 @@ Key Features:
 
 # Examples of usage:
 
-General interface & commands:
+## General interface & commands:
 ![1910D93D-384C-4284-AB77-C8C91C0E56DB_1_201_a](https://github.com/user-attachments/assets/8cac6240-a69e-4a44-a35e-ea4cff6f024f)
 
 
